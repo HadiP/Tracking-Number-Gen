@@ -10,6 +10,20 @@
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
+# Intellij File
+.idea/*
+*.iml
+
+# Netbeans File
+*/.classpath
+*/.project
+*/.settings/
+.settings/
+.project
+
+# vscode
+.vscode
+
 # Package Files #
 *.jar
 *.war
