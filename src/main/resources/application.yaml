@@ -1,0 +1,23 @@
+server.port: 8080
+## Spring boot configs
+spring:
+  application.name: Tele-Tracking-System
+# Datasource configuration
+  datasource:
+    url: jdbc:postgresql://localhost:5432/tele_db
+    driver-class-name: org.postgresql.Driver
+    username: tele_user
+    password: admin17x
+
+#Prometheus
+management:
+  server.port: 8080
+  metrics:
+    tags:
+      environment: development
+      service_id: tele-tracking
+    export.prometheus.enabled: true
+  endpoints.web.exposure.include: health,prometheus,metrics
+  endpoint:
+    prometheus:
+      enabled: true
