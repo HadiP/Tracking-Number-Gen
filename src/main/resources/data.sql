@@ -1,11 +1,11 @@
 -- init data
-INSERT INTO tracking_id_generator(instance_name, next_value, block_size)
-SELECT 'default', 1, 10000
+INSERT INTO tracking_id_generator(origin_code, next_value, block_size)
+SELECT 'DF', 1, 10000
 WHERE NOT EXISTS (
-  SELECT 1 FROM tracking_id_generator WHERE instance_name = 'default'
+  SELECT 1 FROM tracking_id_generator WHERE origin_code = 'DF'
 );
-INSERT INTO tracking_id_generator(instance_name, next_value, block_size)
+INSERT INTO tracking_id_generator(origin_code, next_value, block_size)
 SELECT 'MY', 1, 10000
 WHERE NOT EXISTS (
-  SELECT 1 FROM tracking_id_generator WHERE instance_name = 'MY'
+  SELECT 1 FROM tracking_id_generator WHERE origin_code = 'MY'
 );

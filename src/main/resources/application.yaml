@@ -21,3 +21,9 @@ management:
   endpoint:
     prometheus:
       enabled: true
+
+#Appication config
+tracking:
+  number:
+    refill:
+      threshold: 100
