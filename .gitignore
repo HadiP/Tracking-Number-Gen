@@ -1,3 +1,5 @@
+# target folder
+target
 # Compiled class file
 *.class
 
@@ -11,7 +13,7 @@
 .mtj.tmp/
 
 # Intellij File
-.idea/*
+.idea
 *.iml
 
 # Netbeans File

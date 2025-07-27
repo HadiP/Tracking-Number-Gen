@@ -19,6 +19,7 @@ spec:
       containers:
         - name: tracking-service
           image: rmxku/tracking-num-gen1:latest
+          imagePullPolicy: IfNotPresent
           resources:
             requests:
               memory: "256Mi"
@@ -31,6 +32,31 @@ spec:
           env:
             - name: JAVA_OPTS
               value: "-Xms128m -Xmx384m -XX:+UseZGC"
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: username
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: password
+            - name: SPRING_DATA_MONGODB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: username
+            - name: SPRING_DATA_MONGODB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: password
+            - name: SPRING_DATA_MONGODB_URI
+              value: "mongodb://${SPRING_DATA_MONGODB_USERNAME}:${SPRING_DATA_MONGODB_PASSWORD}@mongodb-service:27017/${SPRING_DATA_MONGODB_DATABASE}"
+          envFrom:
+            - configMapRef:
+                name: tracking-config
           readinessProbe:
             httpGet:
               path: /actuator/health/readiness

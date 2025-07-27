@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tracking-config
+data:
+  SERVER_PORT: "8080"
+  SPRING_APPLICATION_NAME: "Tele-Tracking-System"
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://postgres-service:5432/tele_db"
+  SPRING_DATASOURCE_DRIVER_CLASS_NAME: "org.postgresql.Driver"
+  SPRING_DATA_MONGODB_DATABASE: "audit_db"
+  MANAGEMENT_METRICS_TAGS_ENVIRONMENT: "development"
+  MANAGEMENT_METRICS_TAGS_SERVICE_ID: "tele-tracking"
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "health,prometheus,metrics"
+  MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED: "true"
+  TRACKING_NUMBER_REFILL_THRESHOLD: "100"
