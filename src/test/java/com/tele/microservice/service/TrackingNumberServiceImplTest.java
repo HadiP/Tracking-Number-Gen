@@ -20,6 +20,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.*;
 import java.util.Optional;
+import java.util.UUID;
 
 @ExtendWith(MockitoExtension.class)
 class TrackingNumberServiceImplTest {
@@ -31,10 +32,10 @@ class TrackingNumberServiceImplTest {
     TrackingNumberServiceImpl service;
 
     // A sample order request wrapper
-    private final OrderRequestWrapper orderReq = new OrderRequestWrapper("US",
-                    null, 0d,
+    private final OrderRequestWrapper orderReq = new OrderRequestWrapper("MY",
+                    "ID", 10d,
                     OffsetDateTime.parse("2025-07-25T10:15:30+07:00"),
-                    null, null, null);
+                    UUID.randomUUID(), "Red Box Logistics", "redbox-logistics");
 
     @BeforeEach
     void setup() {
@@ -45,66 +46,66 @@ class TrackingNumberServiceImplTest {
     @Test
     void nextTrackingNumber_refillsAndReturnsFormatted() throws Exception {
         // reserveBlock returns [start=1, end=6) → buffer: {1,2,3,4,5}
-        when(repo.reserveBlock("US")).thenReturn(Pair.of(1L, 6L));
+        when(repo.reserveBlock("MY")).thenReturn(Pair.of(1L, 6L));
 
         String tn = service.nextTrackingNumber(orderReq);
 
         // should consume '1', format as base-36 date + zero-padded seq
-        assertThat(tn).startsWith("US");
+        assertThat(tn).startsWith("MY");
         assertThat(tn.length()).isEqualTo(14);
 
         // refillBuffer called exactly once
-        verify(repo, times(1)).reserveBlock("US");
+        verify(repo, times(1)).reserveBlock("MY");
     }
 
     @Test
     void nextTrackingNumber_whenReserveBlockReturnsNull_throws() {
-        when(repo.reserveBlock("US")).thenReturn(null);
+        when(repo.reserveBlock("MY")).thenReturn(null);
 
         assertThatThrownBy(() -> service.nextTrackingNumber(orderReq))
                 .isInstanceOf(NumberGeneratorException.class)
-                .hasMessageContaining("Unable to find tracking number generator for US");
+                .hasMessageContaining("Unable to find tracking number generator for MY");
     }
 
     @Test
     void nextTrackingNumber_onMaxSequence_triggersReset() throws Exception {
         // pre-load buffer so poll() == MAX_SEQUENCE
         // simulate refillBuffer
-        when(repo.reserveBlock("US")).thenReturn(Pair.of(TrackingNumberServiceImpl.MAX_SEQUENCE, TrackingNumberServiceImpl.MAX_SEQUENCE + 1));
+        when(repo.reserveBlock("MY")).thenReturn(Pair.of(TrackingNumberServiceImpl.MAX_SEQUENCE, TrackingNumberServiceImpl.MAX_SEQUENCE + 1));
         // simulate findById and resetSequence
         TrackingNumberGenerator gen = new TrackingNumberGenerator();
-        gen.setOriginCode("US");
+        gen.setOriginCode("MY");
         gen.setLastResetDateTime(orderReq.createdAt().minusDays(1));
-        when(repo.findById("US")).thenReturn(Optional.of(gen));
-        when(repo.resetSequence("US", orderReq.createdAt()))
+        when(repo.findById("MY")).thenReturn(Optional.of(gen));
+        when(repo.resetSequence("MY", orderReq.createdAt()))
                 .thenReturn(Pair.of(1L, 6L));
 
         // first call will refill buffer, poll() → MAX_SEQUENCE → triggers reset
         String tn = service.nextTrackingNumber(orderReq);
 
-        verify(repo).resetSequence("US", orderReq.createdAt());
-        assertThat(tn).startsWith("US");
+        verify(repo).resetSequence("MY", orderReq.createdAt());
+        assertThat(tn).startsWith("MY");
     }
 
     @Test
     void resetSequence_missingGenerator_throwsNumberGeneratorException() throws Exception {
-        when(repo.reserveBlock("US")).thenReturn(Pair.of(TrackingNumberServiceImpl.MAX_SEQUENCE, TrackingNumberServiceImpl.MAX_SEQUENCE + 1));
-        when(repo.findById("US")).thenReturn(Optional.empty());
+        when(repo.reserveBlock("MY")).thenReturn(Pair.of(TrackingNumberServiceImpl.MAX_SEQUENCE, TrackingNumberServiceImpl.MAX_SEQUENCE + 1));
+        when(repo.findById("MY")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> service.nextTrackingNumber(orderReq))
                 .isInstanceOf(NumberGeneratorException.class)
-                .hasMessageContaining("Unable to find tracking number generator for US");
+                .hasMessageContaining("Unable to find tracking number generator for MY");
     }
 
     @Test
     void resetSequence_invalidDate_throwsInvalidDateException() throws Exception {
         // buffer → {MAX_SEQUENCE}
-        when(repo.reserveBlock("US")).thenReturn(Pair.of(TrackingNumberServiceImpl.MAX_SEQUENCE, TrackingNumberServiceImpl.MAX_SEQUENCE + 1));
+        when(repo.reserveBlock("MY")).thenReturn(Pair.of(TrackingNumberServiceImpl.MAX_SEQUENCE, TrackingNumberServiceImpl.MAX_SEQUENCE + 1));
         // findById returns entity with future lastResetDateTime
         TrackingNumberGenerator gen = new TrackingNumberGenerator();
-        gen.setOriginCode("US");
+        gen.setOriginCode("MY");
         gen.setLastResetDateTime(orderReq.createdAt().plusDays(1));
-        when(repo.findById("US")).thenReturn(Optional.of(gen));
+        when(repo.findById("MY")).thenReturn(Optional.of(gen));
 
         assertThatThrownBy(() -> service.nextTrackingNumber(orderReq))
                 .isInstanceOf(InvalidDateException.class)
