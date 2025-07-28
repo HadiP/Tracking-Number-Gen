@@ -32,7 +32,7 @@ class TrackingNumberServiceImplTest {
     TrackingNumberServiceImpl service;
 
     // A sample order request wrapper
-    private final OrderRequestWrapper orderReq = new OrderRequestWrapper("MY",
+    private final OrderRequestWrapper orderReq = new OrderRequestWrapper(UUID.randomUUID(),"MY",
                     "ID", 10d,
                     OffsetDateTime.parse("2025-07-25T10:15:30+07:00"),
                     UUID.randomUUID(), "Red Box Logistics", "redbox-logistics");

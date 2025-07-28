@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = "com.tele.microservice.repository")
@@ -15,6 +16,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
         "com.tele.microservice.aop",
         "com.tele.microservice.controller"
 })
+@EnableAsync
 public class TrackingSystemApp {
 
     public static void main(String[] args) {

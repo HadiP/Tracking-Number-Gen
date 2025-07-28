@@ -18,9 +18,9 @@ public final class TrackingNumberFormatting {
     public static String formatWithBusinessLogic(LocalDate date, String origin, long seq) {
         String yyyyMMdd   = date.format(DateTimeFormatter.BASIC_ISO_DATE);
         long   dateNum    = Long.parseLong(yyyyMMdd);
-        String base36Date = Long.toString(dateNum, 36).toUpperCase();
+        String base36Date = Base36.encode(dateNum);
 
-        String base36Seq  = Long.toString(seq, 36).toUpperCase();
+        String base36Seq  = Base36.encode(seq);
         String paddedSeq  = String.format("%7s", base36Seq).replace(' ', '0');
 
         return origin + base36Date + paddedSeq;

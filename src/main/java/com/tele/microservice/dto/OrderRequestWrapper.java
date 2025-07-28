@@ -17,10 +17,11 @@ import java.util.regex.Pattern;
  * @param customerSlug
  */
 public record OrderRequestWrapper(
+        UUID orderId,                 // UUID used as idempotency id
         String originCountryId,       // ISO 3166-1 alpha-2 (e.g., "MY")
-        String destinationCountryId,   // ISO 3166-1 alpha-2 (e.g., "ID")
+        String destinationCountryId,  // ISO 3166-1 alpha-2 (e.g., "ID")
         double weight,                // in kilograms, up to 3 decimal places
-        OffsetDateTime createdAt,      // RFC 3339 format
+        OffsetDateTime createdAt,     // RFC 3339 format
         UUID customerId,              // UUID
         String customerName,          // e.g., "RedBox Logistics"
         String customerSlug           // kebab-case e.g., "redbox-logistics"
