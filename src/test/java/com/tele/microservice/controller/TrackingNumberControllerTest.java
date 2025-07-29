@@ -1,9 +1,6 @@
 package com.tele.microservice.controller;
 
-import com.tele.microservice.dto.ErrorMessage;
-import com.tele.microservice.exception.IllegalInputFormatException;
 import com.tele.microservice.exception.NumberGeneratorException;
-import com.tele.microservice.exception.InvalidDateException;
 import com.tele.microservice.service.OrderRecordService;
 import com.tele.microservice.service.TrackingNumberService;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,8 +11,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
-import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.doThrow;
@@ -64,6 +59,27 @@ class TrackingNumberControllerTest {
     }
 
     @Test
+    void whenServiceThrowsNumberGeneratorException_thenReturns400WithErrorMessage() throws Exception {
+        doThrow(new NumberGeneratorException("Generation failed"))
+                .when(trackingNumberService)
+                .nextTrackingNumber(any());
+
+        mockMvc.perform(get("/next-tracking-number")
+                        .param("origin_country_id", "MY")
+                        .param("destination_country_id", "ID")
+                        .param("weight", "1.234")
+                        .param("created_at", "2021-06-15T12:34:56+07:00")
+                        .param("customer_id", "de619854-b59b-425e-9db4-943979e1bd49")
+                        .param("customer_name", "RedBox Logistics")
+                        .param("customer_slug", "redbox-logistics")
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType("application/json"))
+                .andExpect(jsonPath("$.error_message")
+                        .value("Generation failed"));
+    }
+
+    @Test
     void whenInvalidDateFormat_thenReturns400WithErrorMessage() throws Exception {
         mockMvc.perform(get("/next-tracking-number")
                         .param("origin_country_id", "MY")
@@ -100,11 +116,26 @@ class TrackingNumberControllerTest {
     }
 
     @Test
-    void whenServiceThrowsNumberGeneratorException_thenReturns400WithErrorMessage() throws Exception {
-        doThrow(new NumberGeneratorException("Generation failed"))
-                .when(trackingNumberService)
-                .nextTrackingNumber(any());
+    void whenBlankCostumerName_thenReturns400() throws Exception {
+        mockMvc.perform(get("/next-tracking-number")
+                        .param("origin_country_id", "MY")
+                        .param("destination_country_id", "ID")
+                        .param("weight", "1.234")
+                        .param("created_at", "2021-06-15T12:34:56+07:00")
+                        .param("customer_id", "de619854-b59b-425e-9db4-943979e1bd49")
+                        .param("customer_name", "")
+                        .param("customer_slug", "redbox-logistics")
+                )
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType("application/json"))
+                .andExpect(jsonPath("$.field")
+                        .value("customer_name"))
+                .andExpect(jsonPath("$.error_message")
+                        .value("Customer name cannot be blank"));
+    }
 
+    @Test
+    void whenInvalidCostumerSlug_thenReturns400() throws Exception {
         mockMvc.perform(get("/next-tracking-number")
                         .param("origin_country_id", "MY")
                         .param("destination_country_id", "ID")
@@ -112,11 +143,13 @@ class TrackingNumberControllerTest {
                         .param("created_at", "2021-06-15T12:34:56+07:00")
                         .param("customer_id", "de619854-b59b-425e-9db4-943979e1bd49")
                         .param("customer_name", "RedBox Logistics")
-                        .param("customer_slug", "redbox-logistics")
+                        .param("customer_slug", "redboxLogistics")
                 )
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType("application/json"))
+                .andExpect(jsonPath("$.field")
+                        .value("customer_slug"))
                 .andExpect(jsonPath("$.error_message")
-                        .value("Generation failed"));
+                        .value("Customer slug must be in kebab-case format"));
     }
 }
