@@ -1,19 +1,25 @@
 package com.tele.microservice.exception;
 
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 
-@NoArgsConstructor
+@Getter
 public class IllegalInputFormatException extends IllegalArgumentException {
 
-    public IllegalInputFormatException(String s) {
-        super(s);
+    private final String field;
+
+    public IllegalInputFormatException(String field, String message) {
+        super(message);
+        this.field = field;
     }
 
-    public IllegalInputFormatException(String message, Throwable cause) {
+    public IllegalInputFormatException(String field, String message, Throwable cause) {
         super(message, cause);
+        this.field = field;
     }
 
-    public IllegalInputFormatException(Throwable cause) {
+    public IllegalInputFormatException(String field, Throwable cause) {
         super(cause);
+        this.field = field;
     }
+
 }

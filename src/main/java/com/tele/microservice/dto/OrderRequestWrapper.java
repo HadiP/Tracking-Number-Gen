@@ -33,15 +33,15 @@ public record OrderRequestWrapper(
     public OrderRequestWrapper {
         // Validate country codes
         if (!COUNTRY_CODE_PATTERN.matcher(originCountryId).matches()) {
-            throw new IllegalInputFormatException("Origin country must be ISO 3166-1 alpha-2 format");
+            throw new IllegalInputFormatException("origin_country_id", "Origin country must be ISO 3166-1 alpha-2 format");
         }
         if (!COUNTRY_CODE_PATTERN.matcher(destinationCountryId).matches()) {
-            throw new IllegalInputFormatException("Destination country must be ISO 3166-1 alpha-2 format");
+            throw new IllegalInputFormatException("destination_country_id", "Destination country must be ISO 3166-1 alpha-2 format");
         }
 
         // Validate weight
         if (weight <= 0) {
-            throw new IllegalInputFormatException("Weight must be positive");
+            throw new IllegalInputFormatException("weight", "Weight must be positive");
         }
 
         // Round weight to 3 decimal places
@@ -49,12 +49,12 @@ public record OrderRequestWrapper(
 
         // Validate customer name
         if (customerName == null || customerName.isBlank()) {
-            throw new IllegalInputFormatException("Customer name cannot be blank");
+            throw new IllegalInputFormatException("customer_name", "Customer name cannot be blank");
         }
 
         // Validate customer slug
         if (customerSlug == null || !SLUG_PATTERN.matcher(customerSlug).matches()) {
-            throw new IllegalInputFormatException("Customer slug must be in kebab-case format");
+            throw new IllegalInputFormatException("customer_slug", "Customer slug must be in kebab-case format");
         }
     }
 }
