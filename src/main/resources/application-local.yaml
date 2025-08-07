@@ -1,0 +1,47 @@
+server:
+  port: ${SERVER_PORT:8080}
+## Spring boot configs
+spring:
+  application:
+    name: ${SPRING_APPLICATION_NAME:Tele-Tracking-System}
+  # Datasource configuration
+  datasource:
+    url: jdbc:postgresql://localhost:5433/tele_db
+    driver-class-name: org.postgresql.Driver
+    username: trackinguser
+    password: trackingpass
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  sql.init.mode: never
+  # Mongodb
+  data:
+    mongodb:
+      uri: mongodb://audituser:P4s5w%40rd4m0n9OinStaNc3z@localhost:27017/audit_db
+      database: audit_db
+      authentication-database: admin
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db
+    placeholder-replacement: false
+
+#Prometheus
+management:
+  server.port: 8080
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    tags:
+      environment: development
+      service_id: health,prometheus,metrics
+
+#Appication config
+tracking:
+  number:
+    refill:
+      threshold: 100
