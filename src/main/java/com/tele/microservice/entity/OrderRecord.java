@@ -5,6 +5,7 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -41,7 +42,7 @@ public class OrderRecord {
     @Column(nullable = false, precision = 6, scale = 3)
     @Positive
     @DecimalMin("0.001")
-    private Double weight;  // in kilograms, up to 3 decimal places
+    private BigDecimal weight;  // in kilograms, up to 3 decimal places
 
     @Column(name = "created_at", nullable = false, updatable = false)
     @CreationTimestamp

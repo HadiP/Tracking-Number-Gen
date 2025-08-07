@@ -16,6 +16,11 @@ spec:
         - name: mongodb
           image: mongo:7.0
           env:
+            - name: MONGO_INITDB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: tracking-config
+                  key: SPRING_DATA_MONGODB_DATABASE
             - name: MONGO_INITDB_ROOT_USERNAME
               valueFrom:
                 secretKeyRef:

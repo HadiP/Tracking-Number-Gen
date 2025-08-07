@@ -46,14 +46,14 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: db-secret
-                  key: username
+                  key: audit_username
             - name: SPRING_DATA_MONGODB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: db-secret
-                  key: password
+                  key: audit_password
             - name: SPRING_DATA_MONGODB_URI
-              value: "mongodb://${SPRING_DATA_MONGODB_USERNAME}:${SPRING_DATA_MONGODB_PASSWORD}@mongodb-service:27017/${SPRING_DATA_MONGODB_DATABASE}"
+              value: "mongodb://${SPRING_DATA_MONGODB_USERNAME}:${SPRING_DATA_MONGODB_PASSWORD}@mongodb-0.mongodb:27017/${SPRING_DATA_MONGODB_DATABASE}?replicaSet=rs0"
           envFrom:
             - configMapRef:
                 name: tracking-config

@@ -1,0 +1,78 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mongodb-replicaset-init
+spec:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 3
+  template:
+    spec:
+      containers:
+        - name: rs-init
+          image: mongo:7.0
+          command:
+            - bash
+            - -c
+            - |
+              # Wait for MongoDB to be truly ready
+              echo "ReplicaSet initialization started"
+              until mongosh "mongodb://$MONGO_ROOT_USER:$MONGO_ROOT_PASSWORD@mongodb-0.mongodb:27017/admin" \
+                --eval "JSON.stringify(db.runCommand({connectionStatus: 1}))" | grep -q "authenticatedUsers"; do
+                sleep 2
+              done
+              
+              # Check if replica set is already initialized
+              if ! mongosh --host mongodb-0.mongodb \
+                -u $MONGO_ROOT_USER -p $MONGO_ROOT_PASSWORD \
+                --authenticationDatabase admin \
+                --eval "rs.status().ok" | grep -q 1; then
+              
+                # Initialize replica set
+                mongosh "mongodb://$MONGO_ROOT_USER:$MONGO_ROOT_PASSWORD@mongodb-0.mongodb:27017/admin" \
+                  --eval "rs.initiate({
+                    _id: 'rs0',
+                    members: [{
+                      _id: 0,
+                      host: 'mongodb-0.mongodb:27017',
+                      priority: 1
+                    }]
+                  })"
+                echo "ReplicaSet initialized"
+              else
+                echo "ReplicaSet already initialized"
+              fi
+              
+              echo "Create application user " $MONGO_APP_USERNAME
+              mongosh "mongodb://$MONGO_ROOT_USER:$MONGO_ROOT_PASSWORD@mongodb-0.mongodb:27017/admin" \
+                --eval "db.getSiblingDB('$MONGO_INITDB_DATABASE').createUser({
+                  user: '$MONGO_APP_USERNAME',
+                  pwd: '$MONGO_APP_PASSWORD',
+                  roles: [{ role: 'readWrite', db: '$MONGO_INITDB_DATABASE' }]
+                })"
+          env:
+            - name: MONGO_ROOT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: username
+            - name: MONGO_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: password
+            - name: MONGO_APP_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: audit_username
+            - name: MONGO_APP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: audit_password
+            - name: MONGO_INITDB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: tracking-config
+                  key: SPRING_DATA_MONGODB_DATABASE
+      restartPolicy: OnFailure

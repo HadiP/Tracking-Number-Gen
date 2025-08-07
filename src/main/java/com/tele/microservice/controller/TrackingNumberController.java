@@ -104,7 +104,7 @@ public class TrackingNumberController {
             NumberGeneratorException.class
     })
     public ResponseEntity<ErrorMessage> handleBadRequest(Exception e) {
-        log.error("Input error: {}", e.getMessage(), e);
+        log.error("Input error: {}", e.getMessage());
         String field = null;
         if(e instanceof IllegalInputFormatException errInput){
             field = errInput.getField();

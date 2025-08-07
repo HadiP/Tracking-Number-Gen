@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb
+spec:
+  serviceName: mongodb
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      initContainers:
+        - name: fix-keyfile-perms
+          image: busybox:1.35
+          command:
+            - sh
+            - -c
+            - |
+              mkdir -p /work/keyfile
+              cp /secret/key /work/keyfile/key
+              chown 999:999 /work/keyfile/key
+              chmod 400    /work/keyfile/key
+          volumeMounts:
+            # where the secret drops the raw file
+            - name: secret-keyfile
+              mountPath: /secret
+            # where we stage the fixed file
+            - name: keyfile
+              mountPath: /work/keyfile
+      containers:
+        - name: mongodb
+          image: mongo:7.0
+          args:
+            - mongod
+            - "--replSet"
+            - rs0
+            - "--bind_ip_all"
+            - "--auth"
+            - "--keyFile"
+            - /etc/mongo-keyfile/key
+          env:
+            - name: MONGO_INITDB_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: tracking-config
+                  key: SPRING_DATA_MONGODB_DATABASE
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: username
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: password
+            - name: MONGO_APP_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: audit_username
+            - name: MONGO_APP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-secret
+                  key: audit_password
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: mongodb-data
+              mountPath: /data/db
+            - name: keyfile
+              mountPath: /etc/mongo-keyfile
+              readOnly: true
+#            - name: init-script
+#              mountPath: /docker-entrypoint-initdb.d/
+          readinessProbe:
+            exec:
+              command:
+                - mongosh
+                - --eval
+                - "db.adminCommand({ping: 1})"
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            failureThreshold: 6
+      volumes:
+        - name: secret-keyfile
+          secret:
+            secretName: mongo-keyfile
+            items:
+              - key: key
+                path: key
+        - name: keyfile
+          emptyDir: {}
+#      volumes:
+#        - name: init-script
+#          configMap:
+#            name: mongodb-init
+  volumeClaimTemplates:
+    - metadata:
+        name: mongodb-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 1Gi

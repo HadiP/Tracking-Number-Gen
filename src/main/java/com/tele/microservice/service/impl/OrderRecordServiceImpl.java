@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+
 @Service
 @RequiredArgsConstructor
 public class OrderRecordServiceImpl implements OrderRecordService {
@@ -26,6 +28,7 @@ public class OrderRecordServiceImpl implements OrderRecordService {
                 .customerSlug(orderRequest.customerSlug())
                 .originCountryId(orderRequest.originCountryId())
                 .destinationCountryId(orderRequest.destinationCountryId())
+                .weight(BigDecimal.valueOf(orderRequest.weight()))
                 .createdAt(orderRequest.createdAt())
                 .build();
         return repository.save(order);

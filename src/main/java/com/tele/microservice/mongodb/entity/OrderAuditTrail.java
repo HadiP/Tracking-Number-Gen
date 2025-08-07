@@ -2,6 +2,7 @@ package com.tele.microservice.mongodb.entity;
 
 import lombok.*;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.OffsetDateTime;
@@ -27,8 +28,10 @@ public class OrderAuditTrail {
 
     private AuditStatusEnum status;       // "success" or "error"
 
+    @Indexed
     private UUID customerId;
 
+    @Indexed
     private String customerName;
 
     private AuditEventTypeEnum eventType;    // "creation", "update", "delete"
